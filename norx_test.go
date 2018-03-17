@@ -18,12 +18,12 @@ import (
 
 var (
 	katCipherTexts = map[string][]byte{
-		"NORX-64-4-1": kat6441,
-		"NORX-64-6-1": kat6461,
+		"NORX64-4-1": kat6441,
+		"NORX64-6-1": kat6461,
 	}
 	testVectorCipherTexts = map[string][]byte{
-		"NORX-64-4-1": vec6441,
-		"NORX-64-6-1": vec6461,
+		"NORX64-4-1": vec6441,
+		"NORX64-6-1": vec6461,
 	}
 	canAccelerate bool
 )
@@ -77,7 +77,7 @@ func doTestKAT(t *testing.T) {
 	impl := "_" + hardwareAccelImpl.name
 
 	for _, l := range testRounds {
-		n := fmt.Sprintf("NORX-64-%d-1", l)
+		n := fmt.Sprintf("NORX64-%d-1", l)
 		t.Run(n+"_Vector"+impl, func(t *testing.T) { doTestVector(t, n, l) })
 		t.Run(n+"_KAT"+impl, func(t *testing.T) { doTestKATFull(t, n, l) })
 	}
@@ -172,7 +172,7 @@ func doBenchmarkNORX(b *testing.B) {
 	impl := "_" + hardwareAccelImpl.name
 
 	for _, l := range benchRounds {
-		n := fmt.Sprintf("NORX-64-%d-1", l)
+		n := fmt.Sprintf("NORX64-%d-1", l)
 		for _, sz := range benchSizes {
 			bn := n + impl + "_"
 			sn := fmt.Sprintf("_%d", sz)

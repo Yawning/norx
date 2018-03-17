@@ -7,30 +7,26 @@
 
 package norx
 
-import (
-	"crypto/subtle"
-	"errors"
-)
+import "crypto/subtle"
 
 const (
-	KeySize   = 32
+	// KeySize is the size of a key in bytes.
+	KeySize = 32
+
+	// NonceSize is the size of a nonce in bytes.
 	NonceSize = 32
-	TagSize   = 32
 
+	// TagSize is the size of an authentication tag in bytes.
+	TagSize = 32
+
+	// Version is the version of the NORX specification implemented.
 	Version = "3.0"
-)
-
-var (
-	ErrInvalidKeySize   = errors.New("norx: invalid key size")
-	ErrInvalidNonceSize = errors.New("norx: invalid nonce size")
 )
 
 func aeadEncrypt(l int, c, a, m, z, nonce, key []byte) []byte {
 	var k [bytesK]byte
 	s := &state{rounds: l}
 	mLen := len(m)
-
-	mustHaveValidArguments(key, nonce)
 
 	ret, out := sliceForAppend(c, mLen+bytesT)
 
@@ -53,7 +49,6 @@ func aeadDecrypt(l int, m, a, c, z, nonce, key []byte) ([]byte, bool) {
 	s := &state{rounds: l}
 	cLen := len(c)
 
-	mustHaveValidArguments(key, nonce)
 	if cLen < bytesT {
 		return nil, false
 	}
@@ -77,15 +72,6 @@ func aeadDecrypt(l int, m, a, c, z, nonce, key []byte) ([]byte, bool) {
 	burnBytes(k[:])
 
 	return ret, ok
-}
-
-func mustHaveValidArguments(key, nonce []byte) {
-	if len(key) != KeySize {
-		panic(ErrInvalidKeySize)
-	}
-	if len(nonce) != NonceSize {
-		panic(ErrInvalidNonceSize)
-	}
 }
 
 // Shamelessly stolen from the Go runtime library.
