@@ -21,6 +21,10 @@ var (
 		"NORX-64-4-1": kat6441,
 		"NORX-64-6-1": kat6461,
 	}
+	testVectorCipherTexts = map[string][]byte{
+		"NORX-64-4-1": vec6441,
+		"NORX-64-6-1": vec6461,
+	}
 	canAccelerate bool
 )
 
@@ -74,8 +78,37 @@ func doTestKAT(t *testing.T) {
 
 	for _, l := range testRounds {
 		n := fmt.Sprintf("NORX-64-%d-1", l)
-		t.Run(n+impl, func(t *testing.T) { doTestKATFull(t, n, l) })
+		t.Run(n+"_Vector"+impl, func(t *testing.T) { doTestVector(t, n, l) })
+		t.Run(n+"_KAT"+impl, func(t *testing.T) { doTestKATFull(t, n, l) })
 	}
+}
+
+func doTestVector(t *testing.T, vn string, l int) {
+	require := require.New(t)
+	var k, n [32]byte
+	var a, m, z [128]byte
+
+	for i := range k {
+		k[i] = byte(i)
+		n[i] = byte(i + 32)
+	}
+	for i := range a {
+		a[i] = byte(i)
+		m[i] = byte(i)
+		z[i] = byte(i)
+	}
+
+	ctVec := testVectorCipherTexts[vn]
+	if ctVec == nil {
+		panic("missing test vector cipher text")
+	}
+
+	ct := aeadEncrypt(l, nil, a[:], m[:], z[:], n[:], k[:])
+	require.Equal(ctVec, ct, "aeadEncrypt()")
+
+	pt, ok := aeadDecrypt(l, nil, a[:], ct, z[:], n[:], k[:])
+	require.True(ok, "aeadDecrypt(): ok")
+	require.Equal(m[:], pt, "aeadDecrupt()")
 }
 
 func doTestKATFull(t *testing.T, vn string, l int) {
@@ -113,7 +146,7 @@ func doTestKATFull(t *testing.T, vn string, l int) {
 		require.True(ok, "aeadDecrypt(): ok %d", i)
 		require.Len(m, i, "aeadDecrypt(): len(m) %d", i)
 		if len(m) != 0 {
-			require.EqualValues(m, w[:i], "aeadDecrupt(): m %d", i)
+			require.Equal(m, w[:i], "aeadDecrupt(): m %d", i)
 		}
 
 		katOff += len(c)
@@ -153,11 +186,8 @@ func doBenchmarkAEAD(b *testing.B, l, sz int, isEncrypt bool) {
 	b.StopTimer()
 	b.SetBytes(int64(sz))
 
-	m := make([]byte, sz)
-	nonce := make([]byte, NonceSize)
-	key := make([]byte, KeySize)
-	c := make([]byte, 0, sz+TagSize)
-	d := make([]byte, 0, sz)
+	nonce, key := make([]byte, NonceSize), make([]byte, KeySize)
+	m, c, d := make([]byte, sz), make([]byte, 0, sz+TagSize), make([]byte, 0, sz)
 	rand.Read(nonce)
 	rand.Read(key)
 	rand.Read(m)
