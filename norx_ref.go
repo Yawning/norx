@@ -19,6 +19,11 @@ func permuteRef(s *state, rounds int) {
 	// but at least as of Go 1.10, the resulting quarter round routine
 	// is over the inliner budget.
 
+	// Performance: Explicitly load the state into temp vars, and write
+	// it back on completion since the compiler will do all of the
+	// loads/stores otherwise.
+	s0, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, s14, s15 := s.s[0], s.s[1], s.s[2], s.s[3], s.s[4], s.s[5], s.s[6], s.s[7], s.s[8], s.s[9], s.s[10], s.s[11], s.s[12], s.s[13], s.s[14], s.s[15]
+
 	for i := 0; i < rounds; i++ {
 		// Column step
 		// G(S[ 0], S[ 4], S[ 8], S[12]);
@@ -26,57 +31,57 @@ func permuteRef(s *state, rounds int) {
 		// G(S[ 2], S[ 6], S[10], S[14]);
 		// G(S[ 3], S[ 7], S[11], S[15]);
 
-		s.s[0] = (s.s[0] ^ s.s[4]) ^ ((s.s[0] & s.s[4]) << 1)
-		s.s[12] ^= s.s[0]
-		s.s[12] = bits.RotateLeft64(s.s[12], -paramR0)
-		s.s[8] = (s.s[8] ^ s.s[12]) ^ ((s.s[8] & s.s[12]) << 1)
-		s.s[4] ^= s.s[8]
-		s.s[4] = bits.RotateLeft64(s.s[4], -paramR1)
-		s.s[0] = (s.s[0] ^ s.s[4]) ^ ((s.s[0] & s.s[4]) << 1)
-		s.s[12] ^= s.s[0]
-		s.s[12] = bits.RotateLeft64(s.s[12], -paramR2)
-		s.s[8] = (s.s[8] ^ s.s[12]) ^ ((s.s[8] & s.s[12]) << 1)
-		s.s[4] ^= s.s[8]
-		s.s[4] = bits.RotateLeft64(s.s[4], -paramR3)
+		s0 = (s0 ^ s4) ^ ((s0 & s4) << 1)
+		s12 ^= s0
+		s12 = bits.RotateLeft64(s12, -paramR0)
+		s8 = (s8 ^ s12) ^ ((s8 & s12) << 1)
+		s4 ^= s8
+		s4 = bits.RotateLeft64(s4, -paramR1)
+		s0 = (s0 ^ s4) ^ ((s0 & s4) << 1)
+		s12 ^= s0
+		s12 = bits.RotateLeft64(s12, -paramR2)
+		s8 = (s8 ^ s12) ^ ((s8 & s12) << 1)
+		s4 ^= s8
+		s4 = bits.RotateLeft64(s4, -paramR3)
 
-		s.s[1] = (s.s[1] ^ s.s[5]) ^ ((s.s[1] & s.s[5]) << 1)
-		s.s[13] ^= s.s[1]
-		s.s[13] = bits.RotateLeft64(s.s[13], -paramR0)
-		s.s[9] = (s.s[9] ^ s.s[13]) ^ ((s.s[9] & s.s[13]) << 1)
-		s.s[5] ^= s.s[9]
-		s.s[5] = bits.RotateLeft64(s.s[5], -paramR1)
-		s.s[1] = (s.s[1] ^ s.s[5]) ^ ((s.s[1] & s.s[5]) << 1)
-		s.s[13] ^= s.s[1]
-		s.s[13] = bits.RotateLeft64(s.s[13], -paramR2)
-		s.s[9] = (s.s[9] ^ s.s[13]) ^ ((s.s[9] & s.s[13]) << 1)
-		s.s[5] ^= s.s[9]
-		s.s[5] = bits.RotateLeft64(s.s[5], -paramR3)
+		s1 = (s1 ^ s5) ^ ((s1 & s5) << 1)
+		s13 ^= s1
+		s13 = bits.RotateLeft64(s13, -paramR0)
+		s9 = (s9 ^ s13) ^ ((s9 & s13) << 1)
+		s5 ^= s9
+		s5 = bits.RotateLeft64(s5, -paramR1)
+		s1 = (s1 ^ s5) ^ ((s1 & s5) << 1)
+		s13 ^= s1
+		s13 = bits.RotateLeft64(s13, -paramR2)
+		s9 = (s9 ^ s13) ^ ((s9 & s13) << 1)
+		s5 ^= s9
+		s5 = bits.RotateLeft64(s5, -paramR3)
 
-		s.s[2] = (s.s[2] ^ s.s[6]) ^ ((s.s[2] & s.s[6]) << 1)
-		s.s[14] ^= s.s[2]
-		s.s[14] = bits.RotateLeft64(s.s[14], -paramR0)
-		s.s[10] = (s.s[10] ^ s.s[14]) ^ ((s.s[10] & s.s[14]) << 1)
-		s.s[6] ^= s.s[10]
-		s.s[6] = bits.RotateLeft64(s.s[6], -paramR1)
-		s.s[2] = (s.s[2] ^ s.s[6]) ^ ((s.s[2] & s.s[6]) << 1)
-		s.s[14] ^= s.s[2]
-		s.s[14] = bits.RotateLeft64(s.s[14], -paramR2)
-		s.s[10] = (s.s[10] ^ s.s[14]) ^ ((s.s[10] & s.s[14]) << 1)
-		s.s[6] ^= s.s[10]
-		s.s[6] = bits.RotateLeft64(s.s[6], -paramR3)
+		s2 = (s2 ^ s6) ^ ((s2 & s6) << 1)
+		s14 ^= s2
+		s14 = bits.RotateLeft64(s14, -paramR0)
+		s10 = (s10 ^ s14) ^ ((s10 & s14) << 1)
+		s6 ^= s10
+		s6 = bits.RotateLeft64(s6, -paramR1)
+		s2 = (s2 ^ s6) ^ ((s2 & s6) << 1)
+		s14 ^= s2
+		s14 = bits.RotateLeft64(s14, -paramR2)
+		s10 = (s10 ^ s14) ^ ((s10 & s14) << 1)
+		s6 ^= s10
+		s6 = bits.RotateLeft64(s6, -paramR3)
 
-		s.s[3] = (s.s[3] ^ s.s[7]) ^ ((s.s[3] & s.s[7]) << 1)
-		s.s[15] ^= s.s[3]
-		s.s[15] = bits.RotateLeft64(s.s[15], -paramR0)
-		s.s[11] = (s.s[11] ^ s.s[15]) ^ ((s.s[11] & s.s[15]) << 1)
-		s.s[7] ^= s.s[11]
-		s.s[7] = bits.RotateLeft64(s.s[7], -paramR1)
-		s.s[3] = (s.s[3] ^ s.s[7]) ^ ((s.s[3] & s.s[7]) << 1)
-		s.s[15] ^= s.s[3]
-		s.s[15] = bits.RotateLeft64(s.s[15], -paramR2)
-		s.s[11] = (s.s[11] ^ s.s[15]) ^ ((s.s[11] & s.s[15]) << 1)
-		s.s[7] ^= s.s[11]
-		s.s[7] = bits.RotateLeft64(s.s[7], -paramR3)
+		s3 = (s3 ^ s7) ^ ((s3 & s7) << 1)
+		s15 ^= s3
+		s15 = bits.RotateLeft64(s15, -paramR0)
+		s11 = (s11 ^ s15) ^ ((s11 & s15) << 1)
+		s7 ^= s11
+		s7 = bits.RotateLeft64(s7, -paramR1)
+		s3 = (s3 ^ s7) ^ ((s3 & s7) << 1)
+		s15 ^= s3
+		s15 = bits.RotateLeft64(s15, -paramR2)
+		s11 = (s11 ^ s15) ^ ((s11 & s15) << 1)
+		s7 ^= s11
+		s7 = bits.RotateLeft64(s7, -paramR3)
 
 		// Diagonal step
 		// G(S[ 0], S[ 5], S[10], S[15]);
@@ -84,58 +89,60 @@ func permuteRef(s *state, rounds int) {
 		// G(S[ 2], S[ 7], S[ 8], S[13]);
 		// G(S[ 3], S[ 4], S[ 9], S[14]);
 
-		s.s[0] = (s.s[0] ^ s.s[5]) ^ ((s.s[0] & s.s[5]) << 1)
-		s.s[15] ^= s.s[0]
-		s.s[15] = bits.RotateLeft64(s.s[15], -paramR0)
-		s.s[10] = (s.s[10] ^ s.s[15]) ^ ((s.s[10] & s.s[15]) << 1)
-		s.s[5] ^= s.s[10]
-		s.s[5] = bits.RotateLeft64(s.s[5], -paramR1)
-		s.s[0] = (s.s[0] ^ s.s[5]) ^ ((s.s[0] & s.s[5]) << 1)
-		s.s[15] ^= s.s[0]
-		s.s[15] = bits.RotateLeft64(s.s[15], -paramR2)
-		s.s[10] = (s.s[10] ^ s.s[15]) ^ ((s.s[10] & s.s[15]) << 1)
-		s.s[5] ^= s.s[10]
-		s.s[5] = bits.RotateLeft64(s.s[5], -paramR3)
+		s0 = (s0 ^ s5) ^ ((s0 & s5) << 1)
+		s15 ^= s0
+		s15 = bits.RotateLeft64(s15, -paramR0)
+		s10 = (s10 ^ s15) ^ ((s10 & s15) << 1)
+		s5 ^= s10
+		s5 = bits.RotateLeft64(s5, -paramR1)
+		s0 = (s0 ^ s5) ^ ((s0 & s5) << 1)
+		s15 ^= s0
+		s15 = bits.RotateLeft64(s15, -paramR2)
+		s10 = (s10 ^ s15) ^ ((s10 & s15) << 1)
+		s5 ^= s10
+		s5 = bits.RotateLeft64(s5, -paramR3)
 
-		s.s[1] = (s.s[1] ^ s.s[6]) ^ ((s.s[1] & s.s[6]) << 1)
-		s.s[12] ^= s.s[1]
-		s.s[12] = bits.RotateLeft64(s.s[12], -paramR0)
-		s.s[11] = (s.s[11] ^ s.s[12]) ^ ((s.s[11] & s.s[12]) << 1)
-		s.s[6] ^= s.s[11]
-		s.s[6] = bits.RotateLeft64(s.s[6], -paramR1)
-		s.s[1] = (s.s[1] ^ s.s[6]) ^ ((s.s[1] & s.s[6]) << 1)
-		s.s[12] ^= s.s[1]
-		s.s[12] = bits.RotateLeft64(s.s[12], -paramR2)
-		s.s[11] = (s.s[11] ^ s.s[12]) ^ ((s.s[11] & s.s[12]) << 1)
-		s.s[6] ^= s.s[11]
-		s.s[6] = bits.RotateLeft64(s.s[6], -paramR3)
+		s1 = (s1 ^ s6) ^ ((s1 & s6) << 1)
+		s12 ^= s1
+		s12 = bits.RotateLeft64(s12, -paramR0)
+		s11 = (s11 ^ s12) ^ ((s11 & s12) << 1)
+		s6 ^= s11
+		s6 = bits.RotateLeft64(s6, -paramR1)
+		s1 = (s1 ^ s6) ^ ((s1 & s6) << 1)
+		s12 ^= s1
+		s12 = bits.RotateLeft64(s12, -paramR2)
+		s11 = (s11 ^ s12) ^ ((s11 & s12) << 1)
+		s6 ^= s11
+		s6 = bits.RotateLeft64(s6, -paramR3)
 
-		s.s[2] = (s.s[2] ^ s.s[7]) ^ ((s.s[2] & s.s[7]) << 1)
-		s.s[13] ^= s.s[2]
-		s.s[13] = bits.RotateLeft64(s.s[13], -paramR0)
-		s.s[8] = (s.s[8] ^ s.s[13]) ^ ((s.s[8] & s.s[13]) << 1)
-		s.s[7] ^= s.s[8]
-		s.s[7] = bits.RotateLeft64(s.s[7], -paramR1)
-		s.s[2] = (s.s[2] ^ s.s[7]) ^ ((s.s[2] & s.s[7]) << 1)
-		s.s[13] ^= s.s[2]
-		s.s[13] = bits.RotateLeft64(s.s[13], -paramR2)
-		s.s[8] = (s.s[8] ^ s.s[13]) ^ ((s.s[8] & s.s[13]) << 1)
-		s.s[7] ^= s.s[8]
-		s.s[7] = bits.RotateLeft64(s.s[7], -paramR3)
+		s2 = (s2 ^ s7) ^ ((s2 & s7) << 1)
+		s13 ^= s2
+		s13 = bits.RotateLeft64(s13, -paramR0)
+		s8 = (s8 ^ s13) ^ ((s8 & s13) << 1)
+		s7 ^= s8
+		s7 = bits.RotateLeft64(s7, -paramR1)
+		s2 = (s2 ^ s7) ^ ((s2 & s7) << 1)
+		s13 ^= s2
+		s13 = bits.RotateLeft64(s13, -paramR2)
+		s8 = (s8 ^ s13) ^ ((s8 & s13) << 1)
+		s7 ^= s8
+		s7 = bits.RotateLeft64(s7, -paramR3)
 
-		s.s[3] = (s.s[3] ^ s.s[4]) ^ ((s.s[3] & s.s[4]) << 1)
-		s.s[14] ^= s.s[3]
-		s.s[14] = bits.RotateLeft64(s.s[14], -paramR0)
-		s.s[9] = (s.s[9] ^ s.s[14]) ^ ((s.s[9] & s.s[14]) << 1)
-		s.s[4] ^= s.s[9]
-		s.s[4] = bits.RotateLeft64(s.s[4], -paramR1)
-		s.s[3] = (s.s[3] ^ s.s[4]) ^ ((s.s[3] & s.s[4]) << 1)
-		s.s[14] ^= s.s[3]
-		s.s[14] = bits.RotateLeft64(s.s[14], -paramR2)
-		s.s[9] = (s.s[9] ^ s.s[14]) ^ ((s.s[9] & s.s[14]) << 1)
-		s.s[4] ^= s.s[9]
-		s.s[4] = bits.RotateLeft64(s.s[4], -paramR3)
+		s3 = (s3 ^ s4) ^ ((s3 & s4) << 1)
+		s14 ^= s3
+		s14 = bits.RotateLeft64(s14, -paramR0)
+		s9 = (s9 ^ s14) ^ ((s9 & s14) << 1)
+		s4 ^= s9
+		s4 = bits.RotateLeft64(s4, -paramR1)
+		s3 = (s3 ^ s4) ^ ((s3 & s4) << 1)
+		s14 ^= s3
+		s14 = bits.RotateLeft64(s14, -paramR2)
+		s9 = (s9 ^ s14) ^ ((s9 & s14) << 1)
+		s4 ^= s9
+		s4 = bits.RotateLeft64(s4, -paramR3)
 	}
+
+	s.s[0], s.s[1], s.s[2], s.s[3], s.s[4], s.s[5], s.s[6], s.s[7], s.s[8], s.s[9], s.s[10], s.s[11], s.s[12], s.s[13], s.s[14], s.s[15] = s0, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, s14, s15
 }
 
 func padRef(out *[bytesR]byte, in []byte) {
