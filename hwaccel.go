@@ -18,7 +18,6 @@ var (
 		encryptDataFn: encryptDataRef,
 		decryptDataFn: decryptDataRef,
 		finalizeFn:    finalizeRef,
-		permuteFn:     permuteRef,
 	}
 )
 
@@ -29,7 +28,6 @@ type hwaccelImpl struct {
 	encryptDataFn func(*state, []byte, []byte)
 	decryptDataFn func(*state, []byte, []byte)
 	finalizeFn    func(*state, []byte, []byte)
-	permuteFn     func(*state, int)
 }
 
 func forceDisableHardwareAcceleration() {
@@ -44,6 +42,5 @@ func IsHardwareAccelerated() bool {
 }
 
 func init() {
-	// NOTYET
-	// initHardwareAcceleration()
+	initHardwareAcceleration()
 }

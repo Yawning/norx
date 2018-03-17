@@ -219,9 +219,6 @@ func decryptLastBlockRef(s *state, out, in []byte) {
 }
 
 func initRef(s *state, key, nonce []byte) {
-	// Note: Ensuring a correctly sized key/nonce is the caller's
-	// responsibility.
-
 	for i := 0; i < 4; i++ {
 		s.s[i] = binary.LittleEndian.Uint64(nonce[i*bytesW:])
 		s.s[i+4] = binary.LittleEndian.Uint64(key[i*bytesW:])
@@ -279,7 +276,7 @@ func decryptDataRef(s *state, out, in []byte) {
 	decryptLastBlockRef(s, out[off:], in[off:])
 }
 
-func finalizeRef(s *state, tag []byte, key []byte) {
+func finalizeRef(s *state, tag, key []byte) {
 	var lastBlock [bytesC]byte
 
 	s.s[15] ^= tagFinal

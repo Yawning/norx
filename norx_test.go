@@ -29,35 +29,10 @@ var (
 )
 
 func mustInitHardwareAcceleration() {
-	// initHardwareAcceleration()
+	initHardwareAcceleration()
 	if !IsHardwareAccelerated() {
 		panic("initHardwareAcceleration() failed")
 	}
-}
-
-func TestF(t *testing.T) {
-	forceDisableHardwareAcceleration()
-	doTestF(t)
-
-	if !canAccelerate {
-		t.Log("Hardware acceleration not supported on this host.")
-		return
-	}
-	mustInitHardwareAcceleration()
-	doTestF(t)
-}
-
-func doTestF(t *testing.T) {
-	impl := "_" + hardwareAccelImpl.name
-	t.Run("F"+impl, func(t *testing.T) {
-		require := require.New(t)
-		s := &state{}
-		for i := range s.s {
-			s.s[i] = uint64(i)
-		}
-		hardwareAccelImpl.permuteFn(s, 2)
-		require.Equal(initializationConstants, s.s, "pre-generated vs calculated")
-	})
 }
 
 func TestKAT(t *testing.T) {
