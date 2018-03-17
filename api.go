@@ -102,34 +102,34 @@ func (ae *AEAD) Reset() {
 	burnBytes(ae.key)
 }
 
-// ToRuntimeAEAD converts an AEAD instance to a crypto/cipher.AEAD instance.
+// ToRuntime converts an AEAD instance to a crypto/cipher.AEAD instance.
 //
 // The interfaces are distinct as NORX supports both a header and footer as
 // additional data, while the runtime interface only has a singular additonal
 // data parameter.  The resulting cipher.AEAD instance will use the header
 // for additional data if provided, ignoring the footer.
-func (ae *AEAD) ToRuntimeAEAD() cipher.AEAD {
+func (ae *AEAD) ToRuntime() cipher.AEAD {
 	return &goAEAD{ae}
 }
 
 type goAEAD struct {
-	*AEAD
+	aead *AEAD
 }
 
-func (gae *goAEAD) NonceSize() int {
-	return gae.NonceSize()
+func (ae *goAEAD) NonceSize() int {
+	return ae.aead.NonceSize()
 }
 
-func (gae *goAEAD) Overhead() int {
-	return gae.Overhead()
+func (ae *goAEAD) Overhead() int {
+	return ae.aead.Overhead()
 }
 
-func (gae *goAEAD) Seal(dst, nonce, plaintext, additionalData []byte) []byte {
-	return gae.AEAD.Seal(dst, nonce, plaintext, additionalData, nil)
+func (ae *goAEAD) Seal(dst, nonce, plaintext, additionalData []byte) []byte {
+	return ae.aead.Seal(dst, nonce, plaintext, additionalData, nil)
 }
 
-func (gae *goAEAD) Open(dst, nonce, ciphertext, additionalData []byte) ([]byte, error) {
-	return gae.AEAD.Open(dst, nonce, ciphertext, additionalData, nil)
+func (ae *goAEAD) Open(dst, nonce, ciphertext, additionalData []byte) ([]byte, error) {
+	return ae.aead.Open(dst, nonce, ciphertext, additionalData, nil)
 }
 
 // New6441 returns a new keyed NORX64-4-1 instance.

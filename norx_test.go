@@ -103,12 +103,16 @@ func doTestVector(t *testing.T, vn string, l int) {
 		panic("missing test vector cipher text")
 	}
 
-	ct := aeadEncrypt(l, nil, a[:], m[:], z[:], n[:], k[:])
-	require.Equal(ctVec, ct, "aeadEncrypt()")
+	aead := newTestAEAD(k[:], l)
+	require.Equal(NonceSize, aead.NonceSize(), "NonceSize()")
+	require.Equal(TagSize, aead.Overhead(), "Overhead()")
 
-	pt, ok := aeadDecrypt(l, nil, a[:], ct, z[:], n[:], k[:])
-	require.True(ok, "aeadDecrypt(): ok")
-	require.Equal(m[:], pt, "aeadDecrupt()")
+	ct := aead.Seal(nil, n[:], m[:], a[:], z[:])
+	require.Equal(ctVec, ct, "aeadSeal()")
+
+	pt, err := aead.Open(nil, n[:], ct, a[:], z[:])
+	require.NoError(err, "Open()")
+	require.Equal(m[:], pt, "Open()")
 }
 
 func doTestKATFull(t *testing.T, vn string, l int) {
@@ -136,22 +140,37 @@ func doTestKATFull(t *testing.T, vn string, l int) {
 		panic("missing KAT cipher texts")
 	}
 
+	aead := newTestAEAD(k[:], l).ToRuntime()
+	require.Equal(NonceSize, aead.NonceSize(), "NonceSize()")
+	require.Equal(TagSize, aead.Overhead(), "Overhead()")
+
 	for i := range w {
-		katAcc = aeadEncrypt(l, katAcc, h[:i], w[:i], nil, n[:], k[:])
+		katAcc = aead.Seal(katAcc, n[:], w[:i], h[:i])
 		c := katAcc[katOff:]
-		require.Len(c, i+TagSize, "aeadEncrypt(): len(c) %d", i)
+		require.Len(c, i+TagSize, "Seal(): len(c) %d", i)
 		require.Equal(kat[katOff:katOff+len(c)], c)
 
-		m, ok := aeadDecrypt(l, nil, h[:i], c, nil, n[:], k[:])
-		require.True(ok, "aeadDecrypt(): ok %d", i)
-		require.Len(m, i, "aeadDecrypt(): len(m) %d", i)
+		m, err := aead.Open(nil, n[:], c, h[:i])
+		require.NoError(err, "Open(): %d", i)
+		require.Len(m, i, "Open(): len(m) %d", i)
 		if len(m) != 0 {
-			require.Equal(m, w[:i], "aeadDecrupt(): m %d", i)
+			require.Equal(m, w[:i], "Open(): m %d", i)
 		}
 
 		katOff += len(c)
 	}
 	require.Equal(kat, katAcc, "Final concatenated cipher texts.")
+}
+
+func newTestAEAD(k []byte, l int) *AEAD {
+	switch l {
+	case 4:
+		return New6441(k[:])
+	case 6:
+		return New6461(k[:])
+	default:
+		panic("unsupported round parameter")
+	}
 }
 
 func BenchmarkNORX(b *testing.B) {
@@ -176,13 +195,34 @@ func doBenchmarkNORX(b *testing.B) {
 		for _, sz := range benchSizes {
 			bn := n + impl + "_"
 			sn := fmt.Sprintf("_%d", sz)
-			b.Run(bn+"Encrypt"+sn, func(b *testing.B) { doBenchmarkAEAD(b, l, sz, true) })
-			b.Run(bn+"Decrypt"+sn, func(b *testing.B) { doBenchmarkAEAD(b, l, sz, false) })
+			b.Run(bn+"Encrypt"+sn, func(b *testing.B) { doBenchmarkAEADEncrypt(b, l, sz) })
+			b.Run(bn+"Decrypt"+sn, func(b *testing.B) { doBenchmarkAEADDecrypt(b, l, sz) })
 		}
 	}
 }
 
-func doBenchmarkAEAD(b *testing.B, l, sz int, isEncrypt bool) {
+func doBenchmarkAEADEncrypt(b *testing.B, l, sz int) {
+	b.StopTimer()
+	b.SetBytes(int64(sz))
+
+	nonce, key := make([]byte, NonceSize), make([]byte, KeySize)
+	m, c := make([]byte, sz), make([]byte, 0, sz+TagSize)
+	rand.Read(nonce)
+	rand.Read(key)
+	rand.Read(m)
+
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		c = c[:0]
+
+		c = aeadEncrypt(l, c, nil, m, nil, nonce, key)
+		if len(c) != sz+TagSize {
+			b.Fatalf("aeadEncrypt failed")
+		}
+	}
+}
+
+func doBenchmarkAEADDecrypt(b *testing.B, l, sz int) {
 	b.StopTimer()
 	b.SetBytes(int64(sz))
 
@@ -192,32 +232,21 @@ func doBenchmarkAEAD(b *testing.B, l, sz int, isEncrypt bool) {
 	rand.Read(key)
 	rand.Read(m)
 
+	c = aeadEncrypt(l, c, nil, m, nil, nonce, key)
+	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		c = c[:0]
 		d = d[:0]
-
-		if isEncrypt {
-			b.StartTimer()
-		}
-		c = aeadEncrypt(l, c, nil, m, nil, nonce, key)
-		if isEncrypt {
-			b.StopTimer()
-		} else {
-			b.StartTimer()
-		}
 
 		var ok bool
 		d, ok = aeadDecrypt(l, d, nil, c, nil, nonce, key)
-		if !isEncrypt {
-			b.StopTimer()
-		}
-
 		if !ok {
 			b.Fatalf("aeadDecrypt failed")
 		}
-		if !bytes.Equal(m, d) {
-			b.Fatalf("aeadDecrypt output mismatch")
-		}
+	}
+	b.StopTimer()
+
+	if !bytes.Equal(m, d) {
+		b.Fatalf("aeadDecrypt output mismatch")
 	}
 }
 
