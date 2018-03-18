@@ -5,7 +5,7 @@
 // Commons "CC0" public domain dedication. See LICENSE or
 // <http://creativecommons.org/publicdomain/zero/1.0/> for full details.
 
-// Pacakge norx implements the NORX Authenticated Encryption Algorithm,
+// Package norx implements the NORX Authenticated Encryption Algorithm,
 // specifically the NORX64-4-1 and NORX64-6-1 variants, as recommended by the
 // designers for software implementations on modern 64-bit CPUs.
 //
