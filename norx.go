@@ -66,6 +66,7 @@ func aeadDecrypt(l int, m, a, c, z, nonce, key []byte) ([]byte, bool) {
 	ok := subtle.ConstantTimeCompare(srcTag, tag[:]) == 1
 	if !ok { // burn decrypted plaintext on auth failure
 		burnBytes(out[:cLen-bytesT])
+		ret = nil
 	}
 
 	burnUint64s(s.s[:])
