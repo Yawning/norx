@@ -53,19 +53,20 @@ func aeadDecrypt(l int, m, a, c, z, nonce, key []byte) ([]byte, bool) {
 		return nil, false
 	}
 
-	ret, out := sliceForAppend(m, cLen-bytesT)
+	mLen := cLen - bytesT
+	ret, out := sliceForAppend(m, mLen)
 
 	copy(k[:], key)
 	hardwareAccelImpl.initFn(s, k[:], nonce)
 	hardwareAccelImpl.absorbDataFn(s, a, tagHeader)
-	hardwareAccelImpl.decryptDataFn(s, out, c[:cLen-bytesT])
+	hardwareAccelImpl.decryptDataFn(s, out, c[:mLen])
 	hardwareAccelImpl.absorbDataFn(s, z, tagTrailer)
 	hardwareAccelImpl.finalizeFn(s, tag[:], k[:])
 
-	srcTag := c[cLen-bytesT:]
+	srcTag := c[mLen:]
 	ok := subtle.ConstantTimeCompare(srcTag, tag[:]) == 1
-	if !ok { // burn decrypted plaintext on auth failure
-		burnBytes(out[:cLen-bytesT])
+	if !ok && mLen > 0 { // burn decrypted plaintext on auth failure
+		burnBytes(out[:mLen])
 		ret = nil
 	}
 
